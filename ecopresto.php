@@ -19,7 +19,7 @@
 *
 *  @package ec_ecopresto
 *  @author    Adonie SAS - Ecopresto
-*  @version    2.20.1
+*  @version    2.20.2
 *  @copyright Copyright (c) Adonie SAS - Ecopresto
 *  @license    Commercial license
 */
@@ -48,7 +48,7 @@ class ecopresto extends Module{
 	{
 		$this->name = 'ecopresto';
 		$this->tab = 'shipping_logistics';
-		$this->version = '2.20.1';
+		$this->version = '2.20.2';
 		$this->need_instance = 0;
 		$this->author = 'Ecopresto';
 		$this->displayName = $this->l('Ecopresto - Dropshipping');
@@ -250,6 +250,15 @@ class ecopresto extends Module{
 		if (Tools::isSubmit('maj_import')) {
 			$catalog->mettreajourInfoEco('nbligneatraitercsv', Tools::getValue('nbligneatraitercsv'));
 			$output .= $this->displayConfirmation($this->l('Les paramètres d\'import sont correctement mis à jour.'));
+		}
+		if (Tools::isSubmit('maj_importstock')) {
+			$catalog->mettreajourInfoEco('stock_nbligneatraiter', Tools::getValue('stock_nbligneatraiter'));
+			$catalog->mettreajourInfoEco('is_importstock_lot', Tools::getValue('is_importstock_lot'));
+			$output .= $this->displayConfirmation($this->l('Les paramètres d\'import du stock sont correctement mis à jour.'));
+		}
+		if (Tools::isSubmit('maj_importstock_raz')) {
+			$catalog->mettreajourInfoEco('stock_pointeur', 0);
+			$output .= $this->displayConfirmation($this->l('Le pointeur de mise à jour du stock à été remis à zéro.'));
 		}
 		// Méthode Parse CSV
 		if (Tools::isSubmit('maj_catalogue_ecopresto'))
@@ -775,23 +784,42 @@ class ecopresto extends Module{
 			$iteration_max = 5000;
 		$html .= '<fieldset><legend>'.$this->l('Paramètres d\'import').'</legend>';
 		$html .= '<form action="'.Tools::safeOutput($_SERVER['REQUEST_URI']).'" name="form_attributes" method="post">';
-		$html .= '<p>L\'import du catalogue est réalisé en plusieurs étapes. A chaque étape, le programme traite un certain nombre de ligne. La configuration de votre hébergement et les paramètres PHP associés peuvent limiter le volume de ces traitements.</p>';
+		$html .= '<p>'.$this->l('L\'import du catalogue est réalisé en plusieurs étapes. A chaque étape, le programme traite un certain nombre de ligne. La configuration de votre hébergement et les paramètres PHP associés peuvent limiter le volume de ces traitements.').'</p>';
 		$html .= '<p>'.$this->l('Nombre de ligne a traiter par lot d\'import : ').'
 					<input type="text" name="nbligneatraitercsv" value="'.$iteration_max.'" /></p>';
 		$html .= '<p><input type="submit" class="button" name="maj_import" value="'.$this->l('Mise à jour import').'" /></p>';
 		$html .= '</form>';
 		$html .= '</fieldset>';
 		
+		$stock_nbligneatraiter = $this->getInfoEco('stock_nbligneatraiter');
+		$is_importstock_lot = $this->getInfoEco('is_importstock_lot');
+		if ($is_importstock_lot)
+			$check_is_importstock_lot = 'checked="checked"';
+		else 
+			$check_is_importstock_lot = '';
+		if ($stock_nbligneatraiter <= 0 || $stock_nbligneatraiter > 100000)
+			$stock_nbligneatraiter = 500;
+		$html .= '<fieldset><legend>'.$this->l('Paramètres de traitement de la mise à jour du stock').'</legend>';
+		$html .= '<form action="'.Tools::safeOutput($_SERVER['REQUEST_URI']).'" name="form_attributes" method="post">';
+		$html .= '<p>'.$this->l('Par défaut, la mise à jour des stocks se fait en une seule fois. Cependant, vous pouvez choisir de traiter le fichier de mise à jour des stocks en plusieurs lots. A chaque exécution de la tâche "cron", une seule partie du fichier sera traité. Cliquez sur le bouton pour remettre à zéro le pointeur de traitement : à la prochaine exécution du fichier de stock, le fichier stock sera à nouveau téléchargé depuis notre plateforme et le processus de mise à jour reprendra intégralement.').'</p>';
+		$html .= '<p>'.$this->l('Activer le traitement par lot : ').'
+					<input type="checkbox" name="is_importstock_lot" value="1" '.$check_is_importstock_lot.' /></p>';
+		$html .= '<p>'.$this->l('Nombre de ligne a traiter par lot d\'import : ').'
+					<input type="text" name="stock_nbligneatraiter" value="'.$stock_nbligneatraiter.'" /></p>';
+		$html .= '<p><input type="submit" class="button" name="maj_importstock_raz" value="'.$this->l('Remise à zéro du pointeur').'" /> <input type="submit" class="button" name="maj_importstock" value="'.$this->l('Mise à jour import du stock').'" /></p>';
+		$html .= '</form>';
+		$html .= '</fieldset>';
+		
 		$html .= '<fieldset><legend>'.$this->l('Afficher les messages d\'aide').'</legend>';
 		$html .= '<form action="'.Tools::safeOutput($_SERVER['REQUEST_URI']).'" name="form_attributes" method="post">';
-		$html .= '<p>En cliquant sur ce bouton, vous déclencherez l\'affichage de tous les messages d\'aide à la mise en service du module. Il n\'y a pas d\'impact sur vos sélections de produit, ou toutes les autres actions du module.</p>';
+		$html .= '<p>'.$this->l('En cliquant sur ce bouton, vous déclencherez l\'affichage de tous les messages d\'aide à la mise en service du module. Il n\'y a pas d\'impact sur vos sélections de produit, ou toutes les autres actions du module.').'</p>';
 		$html .= '<p><input type="submit" class="button" name="reset_avertissement_ecopresto" value="'.$this->l('Afficher les messages d\'aide').'" /></p>';
 		$html .= '</form>';
 		$html .= '</fieldset>';
 		
 		$html .= '<fieldset><legend>'.$this->l('Ignorer les messages d\'aide').'</legend>';
 		$html .= '<form action="'.Tools::safeOutput($_SERVER['REQUEST_URI']).'" name="form_attributes" method="post">';
-		$html .= '<p>En cliquant sur ce bouton, vous supprimerez tous les messages d\'aide à la mise en service du module. Il n\'y a pas d\'impact sur vos sélections de produit, ou toutes les autres actions du module.</p>';
+		$html .= '<p>'.$this->l('En cliquant sur ce bouton, vous supprimerez tous les messages d\'aide à la mise en service du module. Il n\'y a pas d\'impact sur vos sélections de produit, ou toutes les autres actions du module.').'</p>';
 		$html .= '<p><input type="submit" class="button" name="ignore_tout_avertissement_ecopresto" value="'.$this->l('Ignorer les messages d\'aide').'" /></p>';
 		$html .= '</form>';
 		$html .= '</fieldset>';
@@ -994,7 +1022,13 @@ class ecopresto extends Module{
 			$html .= '<li>'.$this->l('Taille du fichier tracking.xml').' : '.round($taille, 2).' Mo</li>';	
 		} else 
 			$html .= '<li><span style="color:orange">'.$this->l('Le fichier tracking.xml n\'existe pas.').'</span></li>';
-		$html .= '</ul></ul>';
+		
+		$html .= '</ul>';
+		
+		$html .= '<hr/>';
+		$html .= '<li>'.$this->l('Paramètres de traitement de la mise à jour du stock').' : '.$this->getInfoEco('is_importstock_lot').'</li>';
+		$html .= '<li>'.$this->l('Pointeur de traitement de la mise à jour du stock').' : '.$this->getInfoEco('stock_pointeur').'</li>';
+		$html .= '</ul>';
 
 		$html .= '</div>';
 		

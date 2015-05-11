@@ -332,8 +332,6 @@ class ecopresto extends Module{
 			$onglet = "parametres";
         if (Tools::isSubmit('maj_catalogue_ecopresto') || Tools::isSubmit('setCatalogBrutToEcopresto') || Tools::isSubmit('enregistre_selection_produit'))
         	$onglet = "catalogue";
-        if (Tools::isSubmit('creer_table_v220') || Tools::isSubmit('check_doublon_csv'))
-        	$onglet = "aide";
 		
 		
 		$nbTot = Db::getInstance()->getValue('SELECT count(distinct(`supplier_reference`)) FROM  `'._DB_PREFIX_.'product` p, `'._DB_PREFIX_.'ec_ecopresto_product_shop` ps WHERE p.`supplier_reference` = ps.`reference`');

@@ -328,7 +328,7 @@ class ecopresto extends Module{
 		
 		
 		//Définition de l'onglet à afficher par défaut
-		if (Tools::isSubmit('maj_tax') || Tools::isSubmit('maj_lang') || Tools::isSubmit('maj_config') || Tools::isSubmit('maj_attributes') || Tools::isSubmit('ignore_tout_avertissement_ecopresto') || Tools::isSubmit('reset_avertissement_ecopresto') || Tools::isSubmit('maj_import'))
+		if (Tools::isSubmit('maj_tax') || Tools::isSubmit('maj_lang') || Tools::isSubmit('maj_config') || Tools::isSubmit('maj_attributes') || Tools::isSubmit('ignore_tout_avertissement_ecopresto') || Tools::isSubmit('reset_avertissement_ecopresto') || Tools::isSubmit('maj_import') || Tools::isSubmit('maj_importstock') || Tools::isSubmit('maj_importstock_raz') )
 			$onglet = "parametres";
         if (Tools::isSubmit('maj_catalogue_ecopresto') || Tools::isSubmit('setCatalogBrutToEcopresto') || Tools::isSubmit('enregistre_selection_produit'))
         	$onglet = "catalogue";
